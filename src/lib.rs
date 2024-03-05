@@ -3,11 +3,20 @@ use std::{fmt, sync::Arc};
 
 
 
-#[derive(Clone)]
 pub enum Shared<T: ?Sized + 'static> {
     Static(&'static T),
     Shared(Arc<T>)
 }
+
+impl<T: ?Sized> Clone for Shared<T> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Shared(shared) => Self::Shared(Arc::clone(shared)),
+            Self::Static(stat) => Self::Static(stat),
+        }
+    }
+}
+
 
 impl<T: ?Sized> Shared<T> {
     pub fn is_static(&self) -> bool {
