@@ -82,6 +82,8 @@ where
 
 
 
+
+
 impl<T: ?Sized> AsRef<T> for Shared<T> {
     #[inline(always)]
     fn as_ref(&self) -> &T {
@@ -130,6 +132,12 @@ impl<T: ?Sized> From<&'static T> for Shared<T> {
 impl<T: ?Sized> From<Arc<T>> for Shared<T> {
     fn from(value: Arc<T>) -> Self {
         Self::Shared(value)
+    }
+}
+
+impl From<String> for Shared<str> {
+    fn from(value: String) -> Self {
+        Self::Shared(Arc::from(value))        
     }
 }
 
