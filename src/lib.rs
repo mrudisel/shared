@@ -71,25 +71,51 @@ where
     }
 }
 
-impl<T: ?Sized, U> PartialEq<U> for Shared<T>
+impl<T: ?Sized> PartialEq<T> for Shared<T>
 where 
-    T: PartialEq<U>,
+    T: PartialEq,
 {
-    fn eq(&self, other: &U) -> bool {
+    fn eq(&self, other: &T) -> bool {
         self.as_ref().eq(other)
     }
 }
 
-impl<T: ?Sized, U> PartialOrd<U> for Shared<T>
+impl<T: ?Sized> PartialEq for Shared<T>
 where 
-    T: PartialOrd<U>,
+    T: PartialEq,
 {
-    fn partial_cmp(&self, other: &U) -> Option<std::cmp::Ordering> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref().eq(other.as_ref())
+    }
+}
+
+impl<T: ?Sized + Eq> Eq for Shared<T> { } 
+
+
+impl<T: ?Sized> PartialOrd<T> for Shared<T>
+where 
+    T: PartialOrd,
+{
+    fn partial_cmp(&self, other: &T) -> Option<std::cmp::Ordering> {
         self.as_ref().partial_cmp(other)
     }
 }
 
+impl<T: ?Sized> PartialOrd for Shared<T>
+where 
+    T: PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
+    }
+}
 
+
+impl<T: ?Sized + Ord> Ord for Shared<T> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_ref().cmp(other.as_ref())
+    }
+}
 
 
 

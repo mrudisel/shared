@@ -50,24 +50,51 @@ where
     }
 }
 
-impl<T: ?Sized, U> PartialEq<U> for StaticOrBoxed<T>
+impl<T: ?Sized> PartialEq<T> for StaticOrBoxed<T>
 where 
-    T: PartialEq<U>,
+    T: PartialEq,
 {
-    fn eq(&self, other: &U) -> bool {
+    fn eq(&self, other: &T) -> bool {
         self.as_ref().eq(other)
     }
 }
 
-impl<T: ?Sized, U> PartialOrd<U> for StaticOrBoxed<T>
+impl<T: ?Sized + PartialEq> PartialEq for StaticOrBoxed<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref().eq(other.as_ref())
+    }
+}
+
+impl<T: ?Sized + PartialEq + Eq> Eq for StaticOrBoxed<T> { }
+
+impl<T: ?Sized> PartialOrd<T> for StaticOrBoxed<T>
 where 
-    T: PartialOrd<U>,
+    T: PartialOrd,
 {
-    fn partial_cmp(&self, other: &U) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &T) -> Option<std::cmp::Ordering> {
         self.as_ref().partial_cmp(other)
     }
 }
 
+
+impl<T: ?Sized> PartialOrd for StaticOrBoxed<T>
+where 
+    T: PartialOrd,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
+    }
+}
+
+
+impl<T: ?Sized> Ord for StaticOrBoxed<T>
+where 
+    T: Ord,
+{
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_ref().cmp(other.as_ref())
+    }
+}
 
 
 
