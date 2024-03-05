@@ -6,7 +6,10 @@ pub enum StaticOrBoxed<T: ?Sized + 'static> {
     Boxed(Box<T>)
 }
 
-impl<T: ?Sized + Clone> Clone for StaticOrBoxed<T> {
+impl<T: ?Sized> Clone for StaticOrBoxed<T>
+where   
+    Box<T>: Clone
+{
     fn clone(&self) -> Self {
         match self {
             Self::Boxed(boxed) => Self::Boxed(boxed.clone()),
@@ -14,6 +17,7 @@ impl<T: ?Sized + Clone> Clone for StaticOrBoxed<T> {
         }
     }
 }
+
 
 
 impl<T: ?Sized> StaticOrBoxed<T> {
