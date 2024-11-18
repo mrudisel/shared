@@ -2,6 +2,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub enum ArcOrRef<'a, T: ?Sized> {
     Ref(&'a Arc<T>),
     Arc(Arc<T>),
