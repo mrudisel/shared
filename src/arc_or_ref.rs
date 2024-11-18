@@ -2,10 +2,19 @@ use std::fmt;
 use std::ops::Deref;
 use std::sync::Arc;
 
-#[derive(Clone)]
 pub enum ArcOrRef<'a, T: ?Sized> {
     Ref(&'a Arc<T>),
     Arc(Arc<T>),
+}
+
+impl<T: ?Sized> Clone for ArcOrRef<'_, T> {
+    #[inline]
+    fn clone(&self) -> Self {
+        match self {
+            Self::Arc(arc) => ArcOrRef::Arc(Arc::clone(arc)),
+            Self::Ref(refer) => ArcOrRef::Ref(refer),
+        }
+    }
 }
 
 impl<T: ?Sized + std::hash::Hash> std::hash::Hash for ArcOrRef<'_, T> {
