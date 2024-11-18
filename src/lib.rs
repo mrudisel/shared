@@ -1,11 +1,12 @@
-use std::{fmt, sync::Arc};
+use std::fmt;
+use std::sync::Arc;
 
+pub mod arc_or_ref;
 pub mod static_or_boxed;
-
 
 pub enum Shared<T: ?Sized + 'static> {
     Static(&'static T),
-    Shared(Arc<T>)
+    Shared(Arc<T>),
 }
 
 impl<T: ?Sized> Clone for Shared<T> {
@@ -17,7 +18,6 @@ impl<T: ?Sized> Clone for Shared<T> {
     }
 }
 
-
 impl<T: ?Sized> Shared<T> {
     pub fn is_static(&self) -> bool {
         matches!(self, Self::Static(_))
@@ -27,14 +27,13 @@ impl<T: ?Sized> Shared<T> {
         matches!(self, Self::Shared(_))
     }
 
-
     pub fn as_static(&self) -> Option<&'static T> {
         match self {
             Self::Static(stat) => Some(stat),
             _ => None,
         }
     }
-    
+
     pub fn as_shared(&self) -> Option<&Arc<T>> {
         match self {
             Self::Shared(shared) => Some(shared),
@@ -43,14 +42,14 @@ impl<T: ?Sized> Shared<T> {
     }
 
     pub fn to_shared(&mut self) -> &Arc<T>
-    where 
-        Box<T>: From<&'static T>
+    where
+        Box<T>: From<&'static T>,
     {
         match self {
             Self::Shared(shared) => shared,
             Self::Static(stat) => {
-                let shared = Arc::from(Box::from(stat));    
-                
+                let shared = Arc::from(Box::from(stat));
+
                 *self = Self::Shared(shared);
 
                 match self {
@@ -59,11 +58,11 @@ impl<T: ?Sized> Shared<T> {
                 }
             }
         }
-    } 
+    }
 }
 
 impl<T: ?Sized> Default for Shared<T>
-where   
+where
     Arc<T>: Default,
 {
     fn default() -> Self {
@@ -72,7 +71,7 @@ where
 }
 
 impl<T: ?Sized> PartialEq<T> for Shared<T>
-where 
+where
     T: PartialEq,
 {
     fn eq(&self, other: &T) -> bool {
@@ -81,7 +80,7 @@ where
 }
 
 impl<T: ?Sized> PartialEq for Shared<T>
-where 
+where
     T: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -89,11 +88,10 @@ where
     }
 }
 
-impl<T: ?Sized + Eq> Eq for Shared<T> { } 
-
+impl<T: ?Sized + Eq> Eq for Shared<T> {}
 
 impl<T: ?Sized> PartialOrd<T> for Shared<T>
-where 
+where
     T: PartialOrd,
 {
     fn partial_cmp(&self, other: &T) -> Option<std::cmp::Ordering> {
@@ -102,7 +100,7 @@ where
 }
 
 impl<T: ?Sized> PartialOrd for Shared<T>
-where 
+where
     T: PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -110,14 +108,11 @@ where
     }
 }
 
-
 impl<T: ?Sized + Ord> Ord for Shared<T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.as_ref().cmp(other.as_ref())
     }
 }
-
-
 
 impl<T: ?Sized> AsRef<T> for Shared<T> {
     #[inline(always)]
@@ -157,7 +152,6 @@ impl<T: ?Sized> std::borrow::Borrow<T> for Shared<T> {
     }
 }
 
-
 impl<T: ?Sized> From<&'static T> for Shared<T> {
     fn from(value: &'static T) -> Self {
         Self::Static(value)
@@ -172,14 +166,13 @@ impl<T: ?Sized> From<Arc<T>> for Shared<T> {
 
 impl From<String> for Shared<str> {
     fn from(value: String) -> Self {
-        Self::Shared(Arc::from(value))        
+        Self::Shared(Arc::from(value))
     }
 }
 
-
 impl<T: ?Sized + std::hash::Hash> std::hash::Hash for Shared<T> {
-    fn hash<H>(&self, state: &mut H) 
-    where   
+    fn hash<H>(&self, state: &mut H)
+    where
         H: std::hash::Hasher,
     {
         self.as_ref().hash(state)
@@ -190,22 +183,22 @@ impl<T: ?Sized + std::hash::Hash> std::hash::Hash for Shared<T> {
 impl<T: ?Sized + serde::Serialize> serde::Serialize for Shared<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer 
+        S: serde::Serializer,
     {
-        self.as_ref().serialize(serializer)    
+        self.as_ref().serialize(serializer)
     }
 }
 
 #[cfg(feature = "serde")]
-impl<'de, T: ?Sized> serde::Deserialize<'de> for Shared<T> 
-where 
+impl<'de, T: ?Sized> serde::Deserialize<'de> for Shared<T>
+where
     Box<T>: serde::Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de> 
+        D: serde::Deserializer<'de>,
     {
         let boxed = Box::<T>::deserialize(deserializer)?;
-        Ok(Self::Shared(Arc::from(boxed)))        
+        Ok(Self::Shared(Arc::from(boxed)))
     }
 }
